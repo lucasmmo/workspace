@@ -29,7 +29,8 @@
           warn: false
         when: dotfiles.rc != 0
       - name: Moving files to home directory
-        command: 'mv ~/.dotfiles/* ~/'
+        shell:
+          cmd: 'mv ~/.dotfiles/* ~/'
 
     - block:
       - name: Verifing oh-my-zsh
