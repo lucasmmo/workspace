@@ -1,0 +1,70 @@
+---
+- name: Preparing Workstation
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Installing basic linux apps
+      become: true
+      apt:
+        name: '{{ item }}'
+        install_recommends: yes
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - gnupg
+        - curl
+        - git
+        - unzip
+        - zsh
+
+    - block:
+      - name: Verifing dotfiles
+        command: 'test -d /home/{{ ansible_user_id }}/.dotfiles/'
+        register: dotfiles
+        ignore_errors: true
+      - name: Pulling dotfiles of github
+        shell: 
+          cmd: 'git clone https://github.com/lucasmmo/dotfiles ~/.dotfiles'
+          warn: false
+        when: dotfiles.rc != 0
+      - name: Moving files to home directory
+        command: 'mv ~/.dotfiles/* ~/'
+
+    - block:
+      - name: Verifing oh-my-zsh
+        command: 'test -d /home/{{ ansible_user_id }}/.oh-my-zsh/'
+        register: ohmyzsh
+        ignore_errors: true
+      - name: Installing oh-my-zsh
+        shell: 
+          cmd: 'curl -fsL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash'
+          warn: false
+        when: ohmyzsh.rc != 0
+      - name: Changing zsh default shell
+        become: yes
+        user: 
+          name: '{{ ansible_user_id }}'
+          shell: /bin/zsh
+      - name: Changing zsh theme to AGNOSTER
+        lineinpath: 
+          path: /home/{{ ansible_user_id }}/.zshrc
+          regexp: '^ZSH_THEME='
+          line: 'ZSH_THEME="agnoster"'
+      - name: Creating zsh completion folder 
+        file: 
+          path: /home/{{ ansible_user_id }}/.oh-my-zsh/completions
+          state: directory
+          mode: 0755
+
+    - block: 
+      - name: Verifing asdf 
+        command: 'test -d /home/{{ ansible_user_id }}/.asdf/'
+        register: asdf
+        ignore_errors: true
+      - name: Installing asdf
+        shell: 
+          cmd: 'git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.0'
+          warn: false
+        when: asdf.rc != 0
+

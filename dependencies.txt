@@ -1,0 +1,14 @@
+zsh
+asdf
+exa
+fzf
+entr
+mc
+  - powerlevel10k
+tmux
+  - tpm
+  - tmuxinator
+lunarvim
+  - neovim (0.7.1)
+docker
+
