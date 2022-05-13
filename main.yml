@@ -57,14 +57,14 @@
           state: directory
           mode: 0755
 
-    - block: 
-      - name: Verifing asdf 
-        command: 'test -d /home/{{ ansible_user_id }}/.asdf/'
-        register: asdf
-        ignore_errors: true
-      - name: Installing asdf
-        shell: 
-          cmd: 'git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.0'
-          warn: false
-        when: asdf.rc != 0
+    # - block: 
+    #   - name: Verifing asdf 
+    #     command: 'test -d /home/{{ ansible_user_id }}/.asdf/'
+    #     register: asdf
+    #     ignore_errors: true
+    #   - name: Installing asdf
+    #     shell: 
+    #       cmd: 'git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.0'
+    #       warn: false
+    #     when: asdf.rc != 0
 
