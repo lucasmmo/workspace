@@ -15,22 +15,25 @@
         - gnupg
         - curl
         - git
+        - lsb-release
         - unzip
         - zsh
-
-    - block:
-      - name: Verifing dotfiles
-        command: 'test -d /home/{{ ansible_user_id }}/.dotfiles/'
-        register: dotfiles
-        ignore_errors: true
-      - name: Pulling dotfiles of github
-        shell: 
-          cmd: 'git clone https://github.com/lucasmmo/dotfiles ~/.dotfiles'
-          warn: false
-        when: dotfiles.rc != 0
-      - name: Moving files to home directory
-        shell:
-          cmd: 'mv ~/.dotfiles/* ~/'
+        - exa
+        - fzf
+        - mc
+        - tmux
+        - ninja-build 
+        - gettext
+        - libtool
+        - libtool-bin
+        - autoconf
+        - automake
+        - cmake
+        - g++
+        - pkg-config
+        - unzip
+        - curl
+        - doxygen
 
     - block:
       - name: Verifing oh-my-zsh
@@ -48,7 +51,7 @@
           name: '{{ ansible_user_id }}'
           shell: /bin/zsh
       - name: Changing zsh theme to AGNOSTER
-        lineinpath: 
+        lineinfile: 
           path: /home/{{ ansible_user_id }}/.zshrc
           regexp: '^ZSH_THEME='
           line: 'ZSH_THEME="agnoster"'
@@ -57,15 +60,73 @@
           path: /home/{{ ansible_user_id }}/.oh-my-zsh/completions
           state: directory
           mode: 0755
+      - name: Adding autoload to compinit
+        lineinfile:
+          path: /home/{{ ansible_user_id }}/.zshrc
+          line: 'autoload -U compinit && compinit'
+          state: present
 
-    # - block: 
-    #   - name: Verifing asdf 
-    #     command: 'test -d /home/{{ ansible_user_id }}/.asdf/'
-    #     register: asdf
-    #     ignore_errors: true
-    #   - name: Installing asdf
-    #     shell: 
-    #       cmd: 'git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.0'
-    #       warn: false
-    #     when: asdf.rc != 0
+    - block:
+      - name: Verifing asdf 
+        command: 'test -d /home/{{ ansible_user_id }}/.asdf/'
+        register: asdf
+        ignore_errors: true
+      - name: Installing asdf
+        shell:
+          cmd: 'git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.0'
+          warn: false
+        when: asdf.rc != 0
+      - name: Make sure asdf is starting on zsh config
+        lineinfile: 
+          path: /home/{{ ansible_user_id }}/.zshrc
+          line: '. $HOME/.asdf/asdf.sh'
+          state: present
+
+    - block:
+      - name: Verifing tpm 
+        command: 'test -d /home/{{ ansible_user_id }}/.tmux/plugins/tpm'
+        register: tpm
+        ignore_errors: true
+      - name: Installing tpm
+        shell:
+          cmd: 'git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm'
+          warn: false
+        when: tpm.rc != 0
+
+    - block:
+      - name: Verifing dotfiles
+        command: 'test -d /home/{{ ansible_user_id }}/.dotfiles'
+        register: dotf
+        ignore_errors: true
+      - name: Installing dotfiles
+        shell: 
+          cmd: 'git clone https://github.com/lucasmmo/dotfiles.git ~/.dotfiles'
+          warn: false
+        when: dotf.rc != 0
+      - name: Copying dotfiles to home dir
+        command: 'cp ~/.dotfiles/.* ~/'
+        ignore_errors: true
+
+    # - block:
+    #   - name: Install Docker Key
+    #     become: true
+    #     apt_key:
+    #       url: 'https://download.docker.com/linux/ubuntu/gpg'
+    #       state: present
+    #   - name: Install Docker Repository
+    #     become: true
+    #     apt_repository:
+    #       repo: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable'
+    #       state: present
+    #       filename: docker-ce
+    #   - name: Install Docker
+    #     become: true
+    #     apt:
+    #       name: docker-ce
+    #   - name: Adding existing user to group Docker
+    #     become: yes
+    #     user: 
+    #       name: '{{ ansible_user_id }}'
+    #       groups: docker 
+    #       append: yes
 
